@@ -1,5 +1,5 @@
 {
-    "name" : "dcarbone/soap-plus",
+    "name" : "maniakphp/soap-plus",
     "type" : "library",
     "description" : "PHP SoapClient wrapper class",
 
@@ -8,7 +8,7 @@
         "soap",
         "soapclient"
     ],
-    "homepage": "https://github.com/dcarbone/soap-plus",
+    "homepage": "https://github.com/maniakphp/soap-plus",
     "license": "MIT",
 
     "authors" : [
