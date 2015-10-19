@@ -464,7 +464,7 @@ class SoapClientPlus extends \SoapClient implements ICurlPlusContainer
             $this->getCurlClient()->setRequestHeader($k, $v);
         }
         $this->curlPlusClient->setRequestHeader('SOAPAction', $action);
-        
+
         $ret = $this->curlPlusClient->execute();
 
         if ($this->debugEnabled())
@@ -779,6 +779,7 @@ class SoapClientPlus extends \SoapClient implements ICurlPlusContainer
         $newRequest = str_replace("ns2:", "tem:", $newRequest);
         $newRequest = str_replace("ns1:", "tsf1:", $newRequest);
         $newRequest = str_replace("xsi:nil=\"true\"", null, $newRequest);
+        $newRequest = str_replace("<tsf1:offers xsi:type=\"tsf1:Offer\">", "<tsf1:offers>", $newRequest);
         $newRequest = str_replace(["xmlns:ns3=\"tsf\"", "xmlns:ns3=\"tem\"", "xmlns:ns4=\"tem\"", "xmlns:xsi=\"xsi\""], [null, null, null, null], $newRequest);
         return $newRequest;
     }
