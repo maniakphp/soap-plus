@@ -453,6 +453,7 @@ class SoapClientPlus extends \SoapClient implements ICurlPlusContainer
      */
     public function __doRequest($request, $location, $action, $version, $one_way = 0)
     {
+        $request = $this->changeRequestNamespaces($request);
         $this->curlPlusClient->initialize($location, true);
         $this->curlPlusClient->setCurlOpt(CURLOPT_POSTFIELDS, (string)$request);
         $this->curlPlusClient->setCurlOpts($this->curlOptArray);
@@ -760,5 +761,25 @@ class SoapClientPlus extends \SoapClient implements ICurlPlusContainer
             $options['user_agent'] = 'SoapClientPlus';
 
         return $options;
+    }
+
+    /**
+     * Change namespaces in request
+     *
+     * @param string $request
+     * @return string
+     */
+    public function changeRequestNamespaces($request)
+    {
+        $newRequest = preg_replace("/SOAP-ENV(:|=)/", "soapenv$1$2", $request);
+        $newRequest = preg_replace("/xmlns:ns1=(\"[^\s]*\")/", "xmlns:tem=\"http://tempuri.org/\" xmlns:tsf=\"http://schemas.datacontract.org/2004/07/TSF.TI.NSV.Common.WCF.ServiceContracts\"", $newRequest);
+        $newRequest = preg_replace("/xmlns:ns2=(\"[^\s]*\")/", "xmlns:tsf1=\"http://schemas.datacontract.org/2004/07/TSF.TI.NSV.Common.WCF.DataContracts\"", $newRequest);
+        $newRequest = str_replace("ns4:", "tem:", $newRequest);
+        $newRequest = str_replace("ns3:", "tsf:", $newRequest);
+        $newRequest = str_replace("ns2:", "tem:", $newRequest);
+        $newRequest = str_replace("ns1:", "tsf1:", $newRequest);
+        $newRequest = str_replace("xsi:nil=\"true\"", null, $newRequest);
+        $newRequest = str_replace(["xmlns:ns3=\"tsf\"", "xmlns:ns3=\"tem\"", "xmlns:ns4=\"tem\"", "xmlns:xsi=\"xsi\""], [null, null, null, null], $newRequest);
+        return $newRequest;
     }
 }
