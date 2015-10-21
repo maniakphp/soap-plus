@@ -72,6 +72,42 @@ class SoapClientPlus extends \SoapClient implements ICurlPlusContainer
     protected $_debugResults = array();
 
     /**
+     * defaut namespaces set before sending request
+     * @var array
+     */
+    protected $defaultNamespacesArray = [
+        "str_replace" => [
+            "what" => [
+                "xmlns:ns3=\"tsf\"",
+                "xmlns:ns4=\"tem\"",
+                "ns1:",
+                "ns2:",
+                "ns3:",
+                "ns4:",
+            ],
+            "to" => [
+                null,
+                null,
+                "tsf:",
+                "tem:",
+                "tsf:",
+                "tem:",
+            ],
+        ],
+        "preg_replace" => [
+            "/SOAP-ENV(:|=)/" => "soapenv$1$2",
+            "/xmlns:ns1=(\"[^\s]*\")/" => "xmlns:tem=\"http://tempuri.org/\"",
+            "/xmlns:ns2=(\"[^\s]*\")/" => "xmlns:tsf=\"http://schemas.datacontract.org/2004/07/TSF.TI.NSV.Common.WCF.ServiceContracts\"",
+        ]
+    ];
+
+    /**
+     * Custom namespaces
+     * @var array
+     */
+    protected $namespacesArray = [];
+
+    /**
      * Constructor
      *
      * @param string $wsdl
@@ -453,7 +489,7 @@ class SoapClientPlus extends \SoapClient implements ICurlPlusContainer
      */
     public function __doRequest($request, $location, $action, $version, $one_way = 0)
     {
-        $request = $this->changeRequestNamespaces($request);
+        $request = $this->correctRequestNamespaces($request);
         $this->curlPlusClient->initialize($location, true);
         $this->curlPlusClient->setCurlOpt(CURLOPT_POSTFIELDS, (string)$request);
         $this->curlPlusClient->setCurlOpts($this->curlOptArray);
@@ -764,23 +800,44 @@ class SoapClientPlus extends \SoapClient implements ICurlPlusContainer
     }
 
     /**
-     * Change namespaces in request
+     * This function is used to correct request namespaces
+     * Use defaultNamespacesArray in case namespacesArray is empty
      *
-     * @param string $request
-     * @return string
+     * @param $request
+     * @return mixed
      */
-    public function changeRequestNamespaces($request)
+    public function correctRequestNamespaces($request)
     {
-        $newRequest = preg_replace("/SOAP-ENV(:|=)/", "soapenv$1$2", $request);
-        $newRequest = preg_replace("/xmlns:ns1=(\"[^\s]*\")/", "xmlns:tem=\"http://tempuri.org/\" xmlns:tsf=\"http://schemas.datacontract.org/2004/07/TSF.TI.NSV.Common.WCF.ServiceContracts\"", $newRequest);
-        $newRequest = preg_replace("/xmlns:ns2=(\"[^\s]*\")/", "xmlns:tsf1=\"http://schemas.datacontract.org/2004/07/TSF.TI.NSV.Common.WCF.DataContracts\"", $newRequest);
-        $newRequest = str_replace("ns4:", "tem:", $newRequest);
-        $newRequest = str_replace("ns3:", "tsf:", $newRequest);
-        $newRequest = str_replace("ns2:", "tem:", $newRequest);
-        $newRequest = str_replace("ns1:", "tsf1:", $newRequest);
-        $newRequest = str_replace("xsi:nil=\"true\"", null, $newRequest);
-        $newRequest = str_replace("<tsf1:offers xsi:type=\"tsf1:Offer\">", "<tsf1:offers>", $newRequest);
-        $newRequest = str_replace(["xmlns:ns3=\"tsf\"", "xmlns:ns3=\"tem\"", "xmlns:ns4=\"tem\"", "xmlns:xsi=\"xsi\""], [null, null, null, null], $newRequest);
-        return $newRequest;
+        if(empty($this->namespacesArray)) {//if empty use default namespaces:
+            $this->namespacesArray = $this->defaultNamespacesArray;
+        }
+        foreach ($this->namespacesArray as $key => $value) {
+            if (!function_exists($key))
+                continue;
+
+            switch ($key) {
+                case "str_replace":
+                    $request = str_replace($this->namespacesArray["str_replace"]["what"], $this->namespacesArray["str_replace"]["to"], $request);
+                    break;
+                case "preg_replace":
+                    foreach ($this->namespacesArray[$key] as $pattern => $value) {
+                        $request = preg_replace($pattern, $value, $request);
+                    }
+                    break;
+            }
+        }
+
+        //set empty array
+        $this->namespacesArray = [];
+        return $request;
+    }
+
+    /**
+     * Set custom namespaces
+     * @param array $namespacesArray
+     */
+    public function setNamespacesArray($namespacesArray)
+    {
+        $this->namespacesArray = $namespacesArray;
     }
 }
