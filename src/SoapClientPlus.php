@@ -108,6 +108,17 @@ class SoapClientPlus extends \SoapClient implements ICurlPlusContainer
     protected $namespacesArray = [];
 
     /**
+     * The response string
+     * @var string
+     */
+    protected $response;
+
+    /**
+     * @var array
+     */
+    protected $responseHeaders;
+
+    /**
      * Constructor
      *
      * @param string $wsdl
@@ -371,7 +382,10 @@ class SoapClientPlus extends \SoapClient implements ICurlPlusContainer
         if (is_string($arguments))
             $arguments = $this->createArgumentArrayFromXML($arguments, $function_name);
 
-        return parent::__soapCall($function_name, $arguments, $options, $input_headers, $output_headers);
+        $responseBody =  parent::__soapCall($function_name, $arguments, $options, $input_headers, $output_headers);
+        $this->responseHeaders = $output_headers;
+
+        return $responseBody;
     }
 
     /**
@@ -520,6 +534,7 @@ class SoapClientPlus extends \SoapClient implements ICurlPlusContainer
         if ($ret->getResponse() == false || $ret->getHttpCode() != 200)
             throw new \Exception('DCarbone\SoapClientPlus::__doRequest - CURL Error during call: "'. addslashes($ret->getError()).'", "'.addslashes($ret->getResponse()).'"');
 
+        $this->response = $ret->getResponse();
         return $ret->getResponse();
     }
 
@@ -839,5 +854,24 @@ class SoapClientPlus extends \SoapClient implements ICurlPlusContainer
     public function setNamespacesArray($namespacesArray)
     {
         $this->namespacesArray = $namespacesArray;
+    }
+
+    /**
+     * Return response array
+     * @return array
+     */
+    public function getResponseHeaders()
+    {
+        return $this->responseHeaders;
+    }
+
+    /**
+     * Return response string
+     *
+     * @return string
+     */
+    public function getResponse()
+    {
+        return $this->response;
     }
 }
