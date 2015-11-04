@@ -116,7 +116,7 @@ class SoapClientPlus extends \SoapClient implements ICurlPlusContainer
     /**
      * @var array
      */
-    protected $responseHeaders;
+    protected $responseHeaders = [];
 
     /**
      * Constructor
@@ -383,7 +383,9 @@ class SoapClientPlus extends \SoapClient implements ICurlPlusContainer
             $arguments = $this->createArgumentArrayFromXML($arguments, $function_name);
 
         $responseBody =  parent::__soapCall($function_name, $arguments, $options, $input_headers, $output_headers);
-        $this->responseHeaders = $output_headers;
+        if(!empty($output_headers)) {
+            $this->responseHeaders = $output_headers;
+        }
 
         return $responseBody;
     }
