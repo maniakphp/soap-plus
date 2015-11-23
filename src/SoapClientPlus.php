@@ -511,6 +511,7 @@ class SoapClientPlus extends \SoapClient implements ICurlPlusContainer
     public function __doRequest($request, $location, $action, $version, $one_way = 0)
     {
         $request = $this->correctRequestNamespaces($request);
+        $this->request = $request;
         $this->curlPlusClient->initialize($location, true);
         $this->curlPlusClient->setCurlOpt(CURLOPT_POSTFIELDS, (string)$request);
         $this->curlPlusClient->setCurlOpts($this->curlOptArray);
