@@ -108,6 +108,11 @@ class SoapClientPlus extends \SoapClient implements ICurlPlusContainer
     protected $namespacesArray = [];
 
     /**
+     * The request string
+     * @var string $request
+     */
+    protected $request;
+    /**
      * The response string
      * @var string
      */
@@ -856,6 +861,14 @@ class SoapClientPlus extends \SoapClient implements ICurlPlusContainer
     public function setNamespacesArray($namespacesArray)
     {
         $this->namespacesArray = $namespacesArray;
+    }
+
+    /**
+     * @return string
+     */
+    public function getRequest()
+    {
+        return $this->request;
     }
 
     /**
